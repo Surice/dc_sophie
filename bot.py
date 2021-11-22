@@ -1,33 +1,39 @@
+print("loading imports...")
+
 import discord
-from discord.ext import commands
 from json import load
-import logging
 import time
 
-#logging.basicConfig(level=logging.INFO)
+from events.on_member_update import onMemberUpdate
+from events.on_message import onMessage
 
-with open('config.json') as f:
-    conf = load(f)
-    token = conf["token"]
-    status = conf["status"]
-    twitch = conf["twitch-url"]
+print("loading config...")
+def getConfig():
+    with open("config.json") as configFile:
+        return load(configFile)
 
-async def getPrefix(bot, msg):
-    with open('config.json') as f:
-        conf = load(f)
-        prefix = conf["prefix"]
-    return prefix
 
-bot = commands.Bot(command_prefix=getPrefix, self_bot=True, status=discord.Status.offline, afk=True)
-bot.startTime = time.time()
-bot.status = discord.Status.online if status == "online" else discord.Status.idle if status == "idle" else discord.Status.dnd if status == "dnd" else discord.Status.offline
-bot.activity = None
-bot.twitch = twitch
-bot.snipe_messge_author = {}
-bot.snipe_message_content = {}
-bot.lastmsg = None
+config = getConfig()
 
-for cog in ["cogs.utils.events", "cogs.debugger", "cogs.google", "cogs.misc", "cogs.mod", "cogs.nitrosniper", "cogs.setup", "cogs.tools"]:
-    bot.load_extension(cog)
+print("initializing bot")
+client = discord.Client(command_prefix=config['prefix'], self_bot=True)
 
-bot.run(token)
+def getClient():
+    return client
+
+
+@client.event
+async def on_connect():
+    print('We have logged in as {0.user}'.format(client))
+    await client.change_presence(status=discord.Status.do_not_disturb)
+
+@client.event
+async def on_member_update(oldState, newState):
+    await onMemberUpdate(oldState, newState, client)
+    
+@client.event
+async def on_message(msg):
+    await onMessage(msg, config, client)
+
+
+client.run(config['token'])
