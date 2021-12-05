@@ -14,7 +14,8 @@ client: commands.Bot = commands.Bot(command_prefix=config['prefix'], self_bot=Tr
 def getClient():
     return client
 
-for filename in os.listdir('./cogs'):
+#for filename in os.listdir('./cogs'):
+for filename in ["automation.py", "control.py", "tools.py"]:
     if(not filename.endswith(".py")):
         break
     print("loading:", filename)
