@@ -1,22 +1,22 @@
-from os import name
+from components.config import getConfig
 import discord
 from discord.ext import commands
 
 
-class Controlling(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
-        self.bot = bot
+class Control(commands.Cog):
+    def __init__(self, client) -> None:
+        self.client = client
+        self.config = getConfig()
 
-    @commands.command(brief='shutdown the bot client')
-    async def close(self, ctx):
-        await ctx.message.reply(f"> destroy bot client", mention_author=False)
 
-        await self.bot.close()
-    
-    @commands.command(name="update")
-    async def update(self, ctx):
-        await self.bot.change_presence(status=discord.Status.do_not_disturb)
-        await ctx.message.reply("presence updated ✅", mention_author=False)
+    @commands.command()
+    async def afk(self, ctx):
+        activity = discord.CustomActivity("currently unavalible", emoji="❌")
+        await self.client.change_presence(status=discord.Status.idle, activity=activity, afk=True)
 
-def setup(client: commands.Bot):
-    client.add_cog(Controlling(client))
+    @commands.command()
+    async def reset(self, ctx):
+        await self.client.change_presence(activity=discord.CustomActivity(""), status=discord.Status.do_not_disturb, afk=False)
+        
+def setup(client: commands.Bot) -> None:
+    client.add_cog(Control(client))

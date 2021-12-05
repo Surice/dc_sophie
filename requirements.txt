@@ -4,3 +4,4 @@ bs4
 colour
 psutil
 pytz
+asgiref==1.1.1

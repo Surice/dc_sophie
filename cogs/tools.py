@@ -1,103 +1,61 @@
+from components.config import getConfig
+from components.convert import findUser
 import discord
-import time
-import os
-import string
-import random
-from discord import message
-
+from traceback import format_exc
 from discord.ext import commands
-from math import sqrt
-
 
 class Tools(commands.Cog):
-    def __init__(self, bot: commands.Bot) -> None:
-        self.bot = bot
+    def __init__(self, client) -> None:
+        self.client: commands.Bot = client
+        self.config = getConfig()
 
-    @commands.command(brief='Startet den Selfbot neu')
-    async def restart(self, ctx, delay: int = 5):
-        await ctx.message.reply(f"> Bot wird in {delay} Sekunden neugestartet", mention_author=False)
-        time.sleep(delay)
-        await self.bot.change_presence(status=discord.Status.invisible)
-        os.popen("sudo -S %s" % ("service selfbot restart"), 'w').write('PASSWORD')
+    @commands.command(aliases=[])
+    async def ping(self, msg: commands.Context):
+        ping = msg.message
+        pong = await msg.message.reply("> checking...")
+        delta = pong.created_at - ping.created_at
+        delta = int(delta.total_seconds() * 1000)
+        await pong.edit(content=f'> Ping: {delta} ms')
 
-    def is_me(self, m):
-        return m.author == self.bot.user
+    @commands.command(aliases=["whois"])
+    async def userinfo(self, msg: commands.Context, user: discord.User):
+        user = await self.client.fetch_user(self.client.user.id)
+        print(user.avatar)
 
-    @commands.command(aliases=['del', 'd'], brief='Löscht deine letze Nachricht')
-    async def delete(self, ctx, limit: int = None):
-        if limit == None:
-            await self.bot.lastmsg.delete()
-            await ctx.message.delete()
+    @commands.command(aliases=["pb"])
+    async def avatar(self, msg: commands.Context, user: discord.User or str = None):
+        if(user == None):
+            user = self.client.user
+
         else:
-            await ctx.message.delete()
             try:
-                await ctx.channel.purge(limit=limit, check=self.is_me)
+                user = await self.client.fetch_user(user)
             except:
-                try:
-                    async for message in ctx.channel.history(limit=limit):
-                        if message.author == self.bot.user:
-                            await message.delete()
-                except:
-                    await ctx.message.reply("> Kann die Nachrichten nicht löschen", mention_author=False)
+                user = await self.client.fetch_user(user.id)
 
-    @commands.command(brief='Spammt den Chat')
-    async def spam(self, ctx, limit: int, *, text=None):
-        message = ctx.message
-        await ctx.message.delete()
-        if text == None:
-            for _ in range(limit):
-                txt = "".join(random.choices(
-                    string.ascii_uppercase + string.digits, k=random.randrange(12, 24)))
-                if message.reference is not None:
-                    await message.reference.reply(txt)
-                else:
-                    await message.channel.send(txt)
-        else:
-            for _ in range(limit):
-                if message.reference is not None:
-                    await message.reference.reply(text)
-                else:
-                    await message.channel.send(text)
 
-    @commands.command(aliases=['nick'], brief='Ändert deinen Nickname')
-    async def nickname(self, ctx, *, txt=None):
-        try:
-            await ctx.message.author.edit(nick=txt)
-            await ctx.message.reply("> Nickname aktualisiert", mention_author=False)
-        except discord.Forbidden:
-            await ctx.message.reply("> Du kannst deinen Nickname nicht ändern", mention_author=False)
-
-    @commands.command(brief='Markiert Server als gelesen')
-    async def read(self, ctx, id: int = None):
-        if id == None:
-            for guild in self.bot.guilds:
-                await guild.ack()
-            await ctx.message.reply("> Alle Server als gelesen markiert", mention_author=False)
-        else:
-            guild = self.bot.get_guild(id)
-            if guild:
-                await guild.ack()
-                await ctx.message.reply(f"> {guild.name} als gelesen markiert", mention_author=False)
-            else:
-                await ctx.message.reply("> Server nicht gefunden", mention_author=False)
+        await msg.reply(user.avatar_url)
+                
+            
+        
 
     @commands.command()
-    async def calc(self, ctx, *, msg):
-        """Simple calculator. Ex: calc 2+2"""
-        equation = msg.strip().replace('^', '**').replace('x', '*')
-        try:
-            if '=' in equation:
-                left = eval(equation.split('=')[0], {
-                            "__builtins__": None}, {"sqrt": sqrt})
-                right = eval(equation.split('=')[1], {
-                             "__builtins__": None}, {"sqrt": sqrt})
-                answer = str(left == right)
-            else:
-                answer = str(
-                    eval(equation, {"__builtins__": None}, {"sqrt": sqrt}))
-        except TypeError:
-            await ctx.message.reply("> Ungültige Zeichen gefunden", mention_author=False)
-        await ctx.message.reply(f"> {msg.replace('**', '^').replace('x', '*')} = {answer}", mention_author=False)
+    async def love(self, msg: commands.Context, user: discord.User = None):
+        user = await findUser(msg.args[0], self.client)
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Tools(bot))
+        perms = msg.author.permissions_in(msg.channel).embed_links
+        if(perms == True):
+            embed = discord.Embed(description=f"{self.client.user.mention} hat {user.mention} ganz dolle lieb ❤️", color=0xFF0000)
+            await msg.reply(embed=embed)
+        else:
+            await msg.reply(f"> {self.client.user.mention} hat {user.mention} ganz dolle lieb ❤️".replace('\n', '\n> '), mention_author=False)
+
+
+    @commands.command(pass_context=True)
+    async def debug(self, msg: commands.Context):
+        msg.reply("currently not implemented")
+        
+
+def setup(client: commands.Bot) -> None:
+    client.add_cog(Tools(client))
+    
