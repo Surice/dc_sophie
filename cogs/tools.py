@@ -1,7 +1,6 @@
+from components.convert import fetchUser
 from components.config import getConfig
-from components.convert import findUser
 import discord
-from traceback import format_exc
 from discord.ext import commands
 
 class Tools(commands.Cog):
@@ -18,21 +17,23 @@ class Tools(commands.Cog):
         await pong.edit(content=f'> Ping: {delta} ms')
 
     @commands.command(aliases=["whois"])
-    async def userinfo(self, msg: commands.Context, user: discord.User):
-        user = await self.client.fetch_user(self.client.user.id)
-        print(user.avatar)
+    async def userinfo(self, msg: commands.Context, user: discord.User or str = None):
+        user = await fetchUser(self.client, user)
+
+        if(msg.author.permissions_in(msg.channel).embed_links):
+            embed = discord.Embed(
+                title=f"{user.display_name}#{user.discriminator}"
+                )
+
+            await msg.reply(embed=embed)
+        else:
+            content = f"**Name:** {user.display_name}"
+
+            await msg.reply(content=content)
 
     @commands.command(aliases=["pb"])
     async def avatar(self, msg: commands.Context, user: discord.User or str = None):
-        if(user == None):
-            user = self.client.user
-
-        else:
-            try:
-                user = await self.client.fetch_user(user)
-            except:
-                user = await self.client.fetch_user(user.id)
-
+        user = await fetchUser(self.client, user)
 
         await msg.reply(user.avatar_url)
                 
@@ -41,7 +42,7 @@ class Tools(commands.Cog):
 
     @commands.command()
     async def love(self, msg: commands.Context, user: discord.User = None):
-        user = await findUser(msg.args[0], self.client)
+        user = await fetchUser(self.client, user)
 
         perms = msg.author.permissions_in(msg.channel).embed_links
         if(perms == True):
@@ -49,6 +50,12 @@ class Tools(commands.Cog):
             await msg.reply(embed=embed)
         else:
             await msg.reply(f"> {self.client.user.mention} hat {user.mention} ganz dolle lieb ❤️".replace('\n', '\n> '), mention_author=False)
+
+    @commands.command()
+    async def arsch(self, msg: commands.Context, user: discord.User = None):
+        user = await fetchUser(self.client, user)
+
+        await msg.reply(f"{user.display_name} ist ein Arsch!")
 
 
     @commands.command(pass_context=True)
