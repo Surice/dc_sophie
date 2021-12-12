@@ -1,7 +1,7 @@
+from os import name
 from components.convert import fetchUser, pretRes
 from components.config import getConfig
 import discord
-from discord import member
 from discord.ext import commands
 from datetime import datetime
 from pytz import timezone
@@ -20,7 +20,7 @@ class Tools(commands.Cog):
         delta = int(delta.total_seconds() * 1000)
         await pong.edit(content=f'> Ping: {delta} ms')
 
-    @commands.command(aliases=["whois"])
+    @commands.command(aliases=["whois", "ui"])
     async def userinfo(self, msg: commands.Context, user: discord.User or str = None):
         user: discord.User = await fetchUser(self.client, user)
 
@@ -112,12 +112,37 @@ class Tools(commands.Cog):
 
         await msg.reply(user.avatar_url)
                 
-            
+    
+    @commands.command(aliases=["guild", "gi"])
+    async def guildinfo(self, msg: commands.Context, guild: discord.Guild or str = None):
+        if(guild == None):
+            guild = msg.guild
+
+        else:
+            try:
+                guild = await self.client.fetch_guild(guild)
+            except:
+                guild = guild
+
+        embed = discord.Embed(description=guild.description)
+        embed.set_author(
+            name = guild.name,
+            icon_url = guild.icon_url_as(format="gif", static_format="png", size=1024)
+        )
+        embed.set_thumbnail(guild.banner_url_as(format="gif", static_format="png", size=1024))
+        embed.add_field(name="ID:", value=guild.id, inline=True)
+        embed.add_field(name="Owner:", value=f"<@{guild.owner_id}>", inline=True)
+        embed.add_field(name="Member:", value=guild.member_count)
+        embed.add_field(name="Security:", value=f"Mfa: {guild.mfa_level} \nFilter: {guild.explicit_content_filter}")
+        
+
+        if(msg.author.permissions_in(msg.channel).embed_links):
+            await msg.reply(embed=embed)            
 
 
     @commands.command(pass_context=True)
     async def debug(self, msg: commands.Context):
-        msg.reply("currently not implemented")
+        await msg.reply("currently not implemented")
         
 
 def setup(client: commands.Bot) -> None:

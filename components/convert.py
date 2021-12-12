@@ -10,7 +10,7 @@ async def fetchUser(client: commands.Bot, user: discord.User or str = None) -> d
         try:
             user = await client.fetch_user(user)
         except:
-            user = await client.fetch_user(user.id)
+            user = user
 
     return user
 

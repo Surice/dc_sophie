@@ -1,8 +1,6 @@
 print("loading imports...")
 
 from components.config import getConfig
-import discord
-import os
 from discord.ext import commands
 
 print("loading config...")
@@ -15,7 +13,7 @@ def getClient():
     return client
 
 #for filename in os.listdir('./cogs'):
-for filename in ["automation.py", "control.py", "tools.py"]:
+for filename in ["automation.py", "control.py", "tools.py", "feelings.py"]:
     if(not filename.endswith(".py")):
         break
     print("loading:", filename)
