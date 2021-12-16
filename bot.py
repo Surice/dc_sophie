@@ -1,8 +1,6 @@
 print("loading imports...")
 
 from components.config import getConfig
-import discord
-import os
 from discord.ext import commands
 
 print("loading config...")
