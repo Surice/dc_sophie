@@ -15,7 +15,7 @@ def getClient():
     return client
 
 #for filename in os.listdir('./cogs'):
-for filename in ["automation.py", "control.py", "tools.py"]:
+for filename in ["automation.py", "control.py", "tools.py", "feelings.py"]:
     if(not filename.endswith(".py")):
         break
     print("loading:", filename)

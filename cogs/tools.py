@@ -112,13 +112,24 @@ class Tools(commands.Cog):
 
         await msg.reply(user.avatar_url)
                 
-            
+
+    @commands.command(aliases=["perms"])
+    async def permissions(self, msg: commands.Context, user: discord.User or str = None):
+        user = await fetchUser(self.client, user)
+        member: discord.Member = await msg.guild.fetch_member(user.id)
+        userpermissions = ""
+
+        for permission in member.guild_permissions:
+            if(permission[1] == True):
+                userpermissions += f"{permission[0]}, "
+
+        await pretRes(msg, userpermissions, 0x00FF00)
 
 
     @commands.command(pass_context=True)
     async def debug(self, msg: commands.Context):
         msg.reply("currently not implemented")
-        
+
 
 def setup(client: commands.Bot) -> None:
     client.add_cog(Tools(client))
