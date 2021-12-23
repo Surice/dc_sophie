@@ -4,7 +4,7 @@ from discord.ext import commands
 
 async def fetchUser(client: commands.Bot, user: discord.User or str = None) -> discord.User:
     if(user == None):
-            user = client.user
+            user = await client.fetch_user(client.user.id)
 
     else:
         try:

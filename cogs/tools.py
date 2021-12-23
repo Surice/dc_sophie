@@ -26,7 +26,7 @@ class Tools(commands.Cog):
 
         profile = await user.profile()
         createdTimestamp = f"<t:{int(datetime.timestamp(user.created_at.astimezone(timezone('Europe/Berlin'))))}>"
-        descr = f"Name: {user.mention or 'Unknown'} \nID: {user.id or 'Unknown'} \nCreated at: {createdTimestamp} \n"
+        descr = f"Name: {user.mention or 'Unknown'} \nID: {user.id or 'Unknown'} \n\nCreated at: {createdTimestamp} \n"
 
         if(msg.guild != None):
             member: discord.Member = await msg.guild.fetch_member(user.id)
@@ -138,16 +138,34 @@ class Tools(commands.Cog):
             except:
                 guild = guild
 
+        try:
+            guildBans = len(await guild.bans())
+        except:
+            guildBans = "Unknown"
+
+        if(guild.mfa_level == 1):
+            guildMfa = "Active"
+        else:
+            guildMfa = "Disabled"
+
         embed = discord.Embed(description=guild.description)
-        embed.set_author(
-            name = guild.name,
-            icon_url = guild.icon_url_as(format="gif", static_format="png", size=1024)
-        )
-        embed.set_thumbnail(guild.banner_url_as(format="gif", static_format="png", size=1024))
+
+        if(guild.is_icon_animated == True):
+            embed.set_author(url=guild.icon_url_as(format="gif", static_format="png", size=1024), name = guild.name)
+        else:
+            embed.set_author(icon_url=guild.icon_url_as(format="png", static_format="png", size=1024), name = guild.name)
+        if(guild.banner_url != None):
+            embed.set_thumbnail(url=guild.banner_url_as(format="png", size=1024))
         embed.add_field(name="ID:", value=guild.id, inline=True)
         embed.add_field(name="Owner:", value=f"<@{guild.owner_id}>", inline=True)
-        embed.add_field(name="Member:", value=guild.member_count)
-        embed.add_field(name="Security:", value=f"Mfa: {guild.mfa_level} \nFilter: {guild.explicit_content_filter}")
+        embed.add_field(name="Created at:", value=f"<t:{int(datetime.timestamp(guild.created_at.astimezone(timezone('Europe/Berlin'))))}>", inline=False)
+        if(False):
+            embed.add_field(name="Vanity URL", value=await guild.vanity_invite(), inline=True)
+        embed.add_field(name="Member:", value=f"Total: {guild.member_count} \nBanned: {guildBans}", inline=False)
+        embed.add_field(name="Security:", value=f"Mfa: {guildMfa} \nVerfication: {guild.verification_level} \nFilter: {guild.explicit_content_filter}", inline=True)
+        embed.add_field(name="Boosting:", value=f"Boost Tier: {guild.premium_tier} \nBooster: {len(guild.premium_subscribers)}")
+        embed.add_field(name="Statistics", value=f"Text Channel: {len(guild.text_channels)} \nVoice Channel: {len(guild.voice_channels)} \nCategories: {len(guild.categories)} \n Emojis: {len(guild.emojis)}")
+        
         
 
         if(msg.author.permissions_in(msg.channel).embed_links):
