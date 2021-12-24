@@ -6,6 +6,8 @@ from discord.ext import commands
 from datetime import datetime
 from pytz import timezone
 
+from discord.ext.commands.core import command
+
 
 class Tools(commands.Cog):
     def __init__(self, client) -> None:
@@ -169,13 +171,24 @@ class Tools(commands.Cog):
         
 
         if(msg.author.permissions_in(msg.channel).embed_links):
-            await msg.reply(embed=embed)            
+            await msg.reply(embed=embed)
+
+
+    @commands.command()
+    async def snipe(self, msg: commands.Context):
+        try:
+            embed = discord.Embed(description = self.client.snipe_message_content[msg.channel.id], color=0xF04848)
+            embed.set_author(name=self.client.snipe_message_author[msg.channel.id], icon_url=self.client.snipe_message_author[msg.channel.id].avatar_url)
+            message = f"{self.client.snipe_message_author[msg.channel.id]} \n> {self.client.snipe_message_content[msg.channel.id]}"
+            if (msg.author.permissions_in(msg.channel).embed_links):
+                await msg.message.reply(embed=embed, mention_author=False)
+            else:
+                await msg.message.reply(message, mention_author=False)
+        except:
+            await msg.message.reply(f"> Es gibt keine kürzlich gelöschten Nachrichten in {msg.channel.mention}", mention_author=False)
 
     @commands.command(pass_context=True)
     async def debug(self, msg: commands.Context):
-
-        msg.reply("currently not implemented")
-
 
         await msg.reply("currently not implemented")
         

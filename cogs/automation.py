@@ -34,6 +34,12 @@ class Automation(commands.Cog):
         await self.client.change_presence(status=discord.Status.idle, activity=activity, afk=True)
 
 
+    @commands.Cog.listener(name="on_message_delete")
+    async def on_message_delete(self, message):
+        self.client.snipe_message_author[message.channel.id] = message.author
+        self.client.snipe_message_content[message.channel.id] = message.content
+
+
 def setup(client: commands.Bot) -> None:
     client.add_cog(Automation(client))
     

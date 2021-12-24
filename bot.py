@@ -7,7 +7,11 @@ print("loading config...")
 config = getConfig()
 
 print("initializing bot")
+
 client: commands.Bot = commands.Bot(command_prefix=config['prefix'], self_bot=True)
+client.snipe_message_author = {}
+client.snipe_message_content = {}
+
 
 def getClient():
     return client
