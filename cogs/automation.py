@@ -35,9 +35,12 @@ class Automation(commands.Cog):
 
 
     @commands.Cog.listener(name="on_message_delete")
-    async def on_message_delete(self, message):
-        self.client.snipe_message_author[message.channel.id] = message.author
-        self.client.snipe_message_content[message.channel.id] = message.content
+    async def on_message_delete(self, msg: commands.Context):
+        if (msg.bot):
+            return
+
+        self.client.snipe_message_author[msg.channel.id] = msg.author
+        self.client.snipe_message_content[msg.channel.id] = msg.content
 
 
 def setup(client: commands.Bot) -> None:

@@ -180,10 +180,8 @@ class Tools(commands.Cog):
             embed = discord.Embed(description = self.client.snipe_message_content[msg.channel.id], color=0xF04848)
             embed.set_author(name=self.client.snipe_message_author[msg.channel.id], icon_url=self.client.snipe_message_author[msg.channel.id].avatar_url)
             message = f"{self.client.snipe_message_author[msg.channel.id]} \n> {self.client.snipe_message_content[msg.channel.id]}"
-            if (msg.author.permissions_in(msg.channel).embed_links):
-                await msg.message.reply(embed=embed, mention_author=False)
-            else:
-                await msg.message.reply(message, mention_author=False)
+
+            await pretRes(msg, )
         except:
             await msg.message.reply(f"> Es gibt keine kürzlich gelöschten Nachrichten in {msg.channel.mention}", mention_author=False)
 
