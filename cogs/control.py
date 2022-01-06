@@ -11,7 +11,9 @@ class Control(commands.Cog):
 
     @commands.command()
     async def afk(self, ctx):
-        activity = discord.CustomActivity("currently unavalible", emoji="❌")
+        activity = discord.CustomActivity("currently unavailable", emoji="❌")
+
+        if()
         await self.client.change_presence(status=discord.Status.idle, activity=activity, afk=True)
 
     @commands.command()

@@ -177,11 +177,10 @@ class Tools(commands.Cog):
     @commands.command()
     async def snipe(self, msg: commands.Context):
         try:
-            embed = discord.Embed(description = self.client.snipe_message_content[msg.channel.id], color=0xF04848)
-            embed.set_author(name=self.client.snipe_message_author[msg.channel.id], icon_url=self.client.snipe_message_author[msg.channel.id].avatar_url)
+            author = [self.client.snipe_message_author[msg.channel.id], self.client.snipe_message_author[msg.channel.id].avatar_url]
             message = f"{self.client.snipe_message_author[msg.channel.id]} \n> {self.client.snipe_message_content[msg.channel.id]}"
 
-            await pretRes(msg, )
+            await pretRes(msg, message, 0x000000, self.client.snipe_message_author[msg.channel.id], author)
         except:
             await msg.message.reply(f"> Es gibt keine kürzlich gelöschten Nachrichten in {msg.channel.mention}", mention_author=False)
 
