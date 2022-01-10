@@ -178,7 +178,7 @@ class Tools(commands.Cog):
     async def snipe(self, msg: commands.Context):
         try:
             author = [self.client.snipe_message_author[msg.channel.id], self.client.snipe_message_author[msg.channel.id].avatar_url]
-            message = f"{self.client.snipe_message_author[msg.channel.id]} \n> {self.client.snipe_message_content[msg.channel.id]}"
+            message = f"{self.client.snipe_message_content[msg.channel.id]}"
 
             await pretRes(msg, message, 0x000000, self.client.snipe_message_author[msg.channel.id], author)
         except:
@@ -187,7 +187,7 @@ class Tools(commands.Cog):
     @commands.command(pass_context=True)
     async def debug(self, msg: commands.Context):
 
-        await msg.reply("currently not implemented")
+        await msg.reply(self.client.snipe_message_author)
         
 
 def setup(client: commands.Bot) -> None:

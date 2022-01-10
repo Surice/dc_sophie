@@ -21,6 +21,7 @@ class Control(commands.Cog):
     @commands.command()
     async def reset(self, msg: commands.Context):
         await self.client.change_presence(activity=discord.CustomActivity(""), status=discord.Status.do_not_disturb, afk=False)
-        
+
+
 def setup(client: commands.Bot) -> None:
     client.add_cog(Control(client))

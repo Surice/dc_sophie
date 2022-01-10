@@ -23,6 +23,9 @@ async def pretRes(msg: commands.Context, content: str, color: str= "0x000000", t
 
     if(perms == True):
         embed = discord.Embed(description=content, color=color)
+        if(author != None):
+            embed.set_author(name=author[0], icon_url=author[1])
+
         await msg.reply(embed=embed)
     else:
         await msg.reply(content, mention_author=False)
