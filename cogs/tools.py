@@ -1,10 +1,10 @@
-from os import name
 from components.convert import fetchUser, pretRes
 from components.config import getConfig
 import discord
 from discord.ext import commands
 from datetime import datetime
 from pytz import timezone
+from discord.ext.commands import context
 
 from discord.ext.commands.core import command
 
@@ -183,6 +183,23 @@ class Tools(commands.Cog):
             await pretRes(msg, message, 0x000000, self.client.snipe_message_author[msg.channel.id], author)
         except:
             await msg.message.reply(f"> Es gibt keine kürzlich gelöschten Nachrichten in {msg.channel.mention}", mention_author=False)
+
+
+    @commands.command()
+    async def spam(self, msg: commands.Context):
+        await msg.message.delete()
+
+        rounds = 6
+
+        content = msg.message.content.split(' ')
+        content.pop(0)
+        content = ' '.join(content)
+
+        while(rounds > 0):
+            rounds = rounds -1
+            await msg.channel.send(content)
+        
+
 
     @commands.command(pass_context=True)
     async def debug(self, msg: commands.Context):
