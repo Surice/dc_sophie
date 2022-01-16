@@ -13,8 +13,13 @@ class Control(commands.Cog):
     async def afk(self, msg: commands.Context):
         activity = discord.CustomActivity("currently unavailable", emoji="❌")
 
-        if(msg.args[0]):
-            activity = ''.join(msg.args).replace(".", " ")
+        content = msg.message.content.split(' ')
+        content.pop(0)
+        content = ' '.join(content)
+
+        print(content)
+        if(len(content) > 0):
+            activity = discord.CustomActivity(content)
 
         await self.client.change_presence(status=discord.Status.idle, activity=activity, afk=True)
 
