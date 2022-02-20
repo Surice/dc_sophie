@@ -1,6 +1,8 @@
+from math import fabs
 from components.convert import fetchUser, pretRes
 from components.config import getConfig
 import discord
+from discord import mentions
 from discord.ext import commands
 from datetime import datetime
 from pytz import timezone
@@ -22,57 +24,58 @@ class Tools(commands.Cog):
         delta = int(delta.total_seconds() * 1000)
         await pong.edit(content=f'> Ping: {delta} ms')
 
-    @commands.command(aliases=["whois", "ui"])
+    @commands.command(aliases=["whois", "ui", "user"])
     async def userinfo(self, msg: commands.Context, user: discord.User or str = None):
         user: discord.User = await fetchUser(self.client, user)
+        message = f"**Tag:** {user} \n**Mention:** <@{user.id}> \n**ID:** {user.id} \n**Avatar:** {user.avatar_url_as(format='gif')}\n\n"
 
-        profile = await user.profile()
+
         createdTimestamp = f"<t:{int(datetime.timestamp(user.created_at.astimezone(timezone('Europe/Berlin'))))}>"
-        descr = f"Name: {user.mention or 'Unknown'} \nID: {user.id or 'Unknown'} \n\nCreated at: {createdTimestamp} \n"
+        message += f"**Created at:** {createdTimestamp}\n";
 
         if(msg.guild != None):
             member: discord.Member = await msg.guild.fetch_member(user.id)
-            joinedTimestamp = f"<t:{int(datetime.timestamp(member.joined_at.astimezone(timezone('Europe/Berlin'))))}> \n"
-            descr += f"Joined at: {joinedTimestamp}"
+            joinedTimestamp = f"<t:{int(datetime.timestamp(member.joined_at.astimezone(timezone('Europe/Berlin'))))}>"
+            message += f"**Joined at:** {joinedTimestamp}\n";
+            
         
-
+        profile = await user.profile()
         if profile.premium:
             nitroTimestamp = f"<t:{int(datetime.timestamp(profile.premium_since.astimezone(timezone('Europe/Berlin'))))}>"
-            descr += f"Nitro since: {nitroTimestamp}"
+            message += f"**Nitro since:** {nitroTimestamp}\n";
 
-        embed = discord.Embed(description=descr)
-        embed.set_author(name=user, icon_url=user.avatar_url)
-        embed.set_thumbnail(url=user.avatar_url)
-        message = f"{user}\n{descr}"
 
+        message += "\n";
         connections = profile.connected_accounts
         if not str(connections) == "[]":
             socials = ""
             for x in range(len(connections)):
                 current = connections[x]
                 if current["type"] == "github":
-                    socials += f"[Github](https://github.com/{current['name']})\n"
+                    socials += f"https://github.com/{current['name']}, "
                 if current["type"] == "reddit":
-                    socials += f"[Reddit](https://www.reddit.com/user/{current['name']})\n"
+                    socials += f"https://www.reddit.com/user/{current['name']}, "
                 if current["type"] == "spotify":
-                    socials += f"[Spotify](https://open.spotify.com/user/{current['id']})\n"
+                    socials += f"https://open.spotify.com/user/{current['id']}, "
                 if current["type"] == "steam":
-                    socials += f"[Steam](https://steamcommunity.com/profiles/{current['id']})\n"
+                    socials += f"https://steamcommunity.com/profiles/{current['id']}, "
                 if current["type"] == "twitch":
-                    socials += f"[Twitch](https://twitch.tv/{current['name']})\n"
+                    socials += f"https://twitch.tv/{current['name']}, "
                 if current["type"] == "youtube":
-                    socials += f"[Youtube](https://youtube.com/channel/{current['id']})\n"
+                    socials += f"https://youtube.com/channel/{current['id']}, "
                 if current["type"] == "twitter":
-                    socials += f"[Twitter](https://twitter.com/{current['name']})\n"
+                    socials += f"https://twitter.com/{current['name']}, "
                 if current["type"] == "facebook":
-                    socials += f"[Facebook](https://www.facebook.com/{current['id']})\n"
+                    socials += f"https://www.facebook.com/{current['id']}, "
                 if current["type"] == "xbox":
-                    socials += f"Xbox: {current['name']}\n"
+                    socials += f"{current['name']}, "
                 if current["type"] == "battlenet":
-                    socials += f"Battle.net: {current['name']}\n"
+                    socials += f"{current['name']}, "
                 if current["type"] == "leagueoflegends":
-                    socials += f"League of Legends: {current['name']}\n"
-            embed.add_field(name="Connections", value=socials)
+                    socials += f"{current['name']}"
+                
+            message += f"**Connections:** {socials}\n";
+            
             
         badges = ""
         if user.public_flags.staff:
@@ -99,14 +102,11 @@ class Tools(commands.Cog):
             badges += "Early_supporter, "
         if profile.premium:
             badges += "Nitro, "
-        if not badges == "": 
-            embed.add_field(name="Badges", value=badges)
+        if not badges == "":
+            message += f"**Badges:** {badges}"
+            
 
-
-        if(msg.author.permissions_in(msg.channel).embed_links):
-            await msg.reply(embed=embed)
-        else:
-            await msg.reply(content=message)
+        await msg.reply(content=message);
 
     @commands.command(aliases=["pb"])
     async def avatar(self, msg: commands.Context, user: discord.User or str = None):
@@ -150,39 +150,31 @@ class Tools(commands.Cog):
         else:
             guildMfa = "Disabled"
 
-        embed = discord.Embed(description=guild.description)
+        GuildIconFormat = 'png';
+        if(guild.is_icon_animated()):
+            GuildIconFormat = 'gif';
 
-        if(guild.is_icon_animated == True):
-            embed.set_author(url=guild.icon_url_as(format="gif", static_format="png", size=1024), name = guild.name)
-        else:
-            embed.set_author(icon_url=guild.icon_url_as(format="png", static_format="png", size=1024), name = guild.name)
-        if(guild.banner_url != None):
-            embed.set_thumbnail(url=guild.banner_url_as(format="png", size=1024))
-        embed.add_field(name="ID:", value=guild.id, inline=True)
-        embed.add_field(name="Owner:", value=f"<@{guild.owner_id}>", inline=True)
-        embed.add_field(name="Created at:", value=f"<t:{int(datetime.timestamp(guild.created_at.astimezone(timezone('Europe/Berlin'))))}>", inline=False)
-        if(False):
-            embed.add_field(name="Vanity URL", value=await guild.vanity_invite(), inline=True)
-        embed.add_field(name="Member:", value=f"Total: {guild.member_count} \nBanned: {guildBans}", inline=False)
-        embed.add_field(name="Security:", value=f"Mfa: {guildMfa} \nVerfication: {guild.verification_level} \nFilter: {guild.explicit_content_filter}", inline=True)
-        embed.add_field(name="Boosting:", value=f"Boost Tier: {guild.premium_tier} \nBooster: {len(guild.premium_subscribers)}")
-        embed.add_field(name="Statistics", value=f"Text Channel: {len(guild.text_channels)} \nVoice Channel: {len(guild.voice_channels)} \nCategories: {len(guild.categories)} \n Emojis: {len(guild.emojis)}")
-        
+        message = f"**Name:** {guild.name} \n**ID:** {guild.id} \n**Owner:** <@{guild.owner_id}> ({guild.owner}) \n**Icon:** {guild.icon_url_as(format=GuildIconFormat, size=1024)}  \n**Banner:** {guild.banner_url_as(format='png', size=1024)}\n**Description:** `{guild.description}`\n";
+
+        guildCreatedAt = f"<t:{int(datetime.timestamp(guild.created_at.astimezone(timezone('Europe/Berlin'))))}>";
+        message += f"**Created at:** {guildCreatedAt} \n\n";
+
+        message += f"**Member:** Total: {guild.member_count} \nBanned: {guildBans} \n**Security:** Mfa: {guildMfa} \nVerfication: {guild.verification_level} \nFilter: {guild.explicit_content_filter} \n**Boosting:** Boost Tier: {guild.premium_tier} \nBooster: {len(guild.premium_subscribers)} \n**Statistics:** Text Channel: {len(guild.text_channels)} \nVoice Channel: {len(guild.voice_channels)} \nCategories: {len(guild.categories)} \n Emojis: {len(guild.emojis)}";
         
 
-        if(msg.author.permissions_in(msg.channel).embed_links):
-            await msg.reply(embed=embed)
+        await msg.reply(content=message);
 
 
     @commands.command()
     async def snipe(self, msg: commands.Context):
         try:
-            author = [self.client.snipe_message_author[msg.channel.id], self.client.snipe_message_author[msg.channel.id].avatar_url]
-            message = f"{self.client.snipe_message_content[msg.channel.id]}"
+            author = [self.client.snipe_message_author[msg.channel.id].id, f"{self.client.snipe_message_author[msg.channel.id].name}#{self.client.snipe_message_author[msg.channel.id].discriminator}"];
+            message = f"{self.client.snipe_message_content[msg.channel.id]}";
 
-            await pretRes(msg, message, 0x000000, self.client.snipe_message_author[msg.channel.id], author)
+            message = f"**<@{author[0]}> ({author[1]})** \n> {message}";
+            await msg.message.reply(content=message, mention_author=False);
         except:
-            await msg.message.reply(f"> Es gibt keine kürzlich gelöschten Nachrichten in {msg.channel.mention}", mention_author=False)
+            await msg.message.reply(f"> Es gibt keine kürzlich gelöschten Nachrichten in {msg.channel.mention}", mention_author=False);
 
 
     @commands.command()
